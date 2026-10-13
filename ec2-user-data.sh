@@ -12,10 +12,20 @@ echo "=========================================================="
 # 1. Update system packages
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get upgrade -y
 apt-get install -y ca-certificates curl gnupg lsb-release git
 
-# 2. Install official Docker Engine & Docker Compose plugin
+# 2. Configure 4GB Swap Space (Essential for AWS Free Tier t2.micro / 1GB RAM)
+if [ ! -f /swapfile ]; then
+    echo "[*] Configuring 4GB swap space to prevent Free Tier OOM errors..."
+    fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    echo 10 > /proc/sys/vm/swappiness
+fi
+
+# 3. Install official Docker Engine & Docker Compose plugin
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg

@@ -5,6 +5,16 @@ echo "=========================================================="
 echo " Road Extraction App - EC2 Deployment Script"
 echo "=========================================================="
 
+# Ensure swap space exists (Crucial for AWS Free Tier t2.micro with 1GB RAM)
+if [ ! -f /swapfile ] && [ $(free -m | awk '/^Mem:/{print $2}') -lt 2000 ]; then
+    echo "[!] Low RAM detected (<2GB). Setting up 4GB swap space to avoid OOM..."
+    sudo fallocate -l 4G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+fi
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo "[!] Docker not found. Installing Docker..."
