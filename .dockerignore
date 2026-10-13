@@ -1,0 +1,15 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.gradio
+dataset
+train_test_dir
+predictions
+metrics_plots
+AI_Project.ipynb
+download_dataset.py
+util.py

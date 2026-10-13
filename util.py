@@ -241,17 +241,28 @@ def predict_and_save(model, valid_loader, device, output_dir="./predictions"):
 train_dir = r"dataset\datasets\balraj98\deepglobe-road-extraction-dataset\versions\2\train"
 valid_dir = r"dataset\datasets\balraj98\deepglobe-road-extraction-dataset\versions\2\valid"
 
-train_ds = RoadDatasetTrain(train_dir)
-valid_ds = RoadDatasetValid(valid_dir)
-new_ds = RoadDatasetTrain(r"train_test_dir")
+train_loader = None
+valid_loader = None
+new_loader = None
 
-train_loader = DataLoader(train_ds, batch_size=4, shuffle=True, num_workers=2)
-valid_loader = DataLoader(valid_ds, batch_size=2, shuffle=False)
-new_loader = DataLoader(new_ds, batch_size=2, shuffle=False)
+if os.path.exists(train_dir):
+    train_ds = RoadDatasetTrain(train_dir)
+    train_loader = DataLoader(train_ds, batch_size=4, shuffle=True, num_workers=2)
+
+if os.path.exists(valid_dir):
+    valid_ds = RoadDatasetValid(valid_dir)
+    valid_loader = DataLoader(valid_ds, batch_size=2, shuffle=False)
+
+if os.path.exists("train_test_dir"):
+    new_ds = RoadDatasetTrain(r"train_test_dir")
+    new_loader = DataLoader(new_ds, batch_size=2, shuffle=False)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = UNet()
-model.load_state_dict(torch.load("./road_unet_epoch15.pth"))
+if os.path.exists("./road_unet_epoch15.pth"):
+    model.load_state_dict(torch.load("./road_unet_epoch15.pth", map_location=device))
+elif os.path.exists("./road_unet_epoch5.pth"):
+    model.load_state_dict(torch.load("./road_unet_epoch5.pth", map_location=device))
 model.to(device)
 # Train only on training set
 # train_model(model, train_loader, device, epochs=5, lr=1e-4)
@@ -504,4 +515,5 @@ if __name__ == "__main__":
         examples=None,
     )
 
-    demo.launch(debug=False, share=False)
+    port = int(os.environ.get("PORT", 7860))
+    demo.launch(server_name="0.0.0.0", server_port=port, debug=False, share=False)
